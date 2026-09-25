@@ -1,0 +1,1607 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="light-theme">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rhine Lab OS Wallpaper</title>
+<style>
+  :root {
+    /* 默认浅色主题 */
+    --bg-base: #f2f1ed;
+    --bg-grid: #ffffff;
+    --bg-grid-side: #e3e1db;
+    --text-main: #1a1a1a;
+    --text-sub: #666660;
+    --text-light: #a3a39e;
+    --accent: #2c2c2c;
+    --accent-rgb: 44, 44, 44;
+    --line: rgba(0, 0, 0, 0.1);
+    --glow: rgba(0, 0, 0, 0.03);
+    --panel-bg: rgba(255, 255, 255, 0.72);
+
+    /* 字体栈 */
+    --font-stack:
+      "Inter",
+      "Helvetica Neue",
+      "MiSans",
+      "HarmonyOS Sans SC",
+      "OPPO Sans",
+      "Alibaba PuHuiTi 3.0",
+      "Alibaba PuHuiTi",
+      "Source Han Sans CN",
+      "Noto Sans SC",
+      "PingFang SC",
+      "Hiragino Sans GB",
+      "Microsoft YaHei UI",
+      "Microsoft YaHei",
+      -apple-system,
+      BlinkMacSystemFont,
+      sans-serif;
+
+    --theme-duration: 900ms;
+    --theme-ease: cubic-bezier(0.65, 0, 0.35, 1);
+    --transition-theme: background-color var(--theme-duration) var(--theme-ease),
+                        color var(--theme-duration) var(--theme-ease),
+                        border-color var(--theme-duration) var(--theme-ease),
+                        opacity var(--theme-duration) var(--theme-ease);
+  }
+
+  body.dark-theme {
+    --bg-base: #0a0b10;
+    --bg-grid: #14161f;
+    --bg-grid-side: #0d0e14;
+    --text-main: #e8e9f0;
+    --text-sub: #8a8d9e;
+    --text-light: #545768;
+    --accent: #e8e9f0;
+    --accent-rgb: 232, 233, 240;
+    --line: rgba(255, 255, 255, 0.1);
+    --glow: rgba(255, 255, 255, 0.05);
+    --panel-bg: rgba(16, 18, 26, 0.72);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    width: 100%; height: 100%;
+    overflow: hidden;
+    background-color: var(--bg-base);
+    color: var(--text-main);
+    font-family: var(--font-stack);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: "kern" 1, "liga" 1;
+    transition: var(--transition-theme);
+    cursor: none; /* 壁纸隐藏鼠标；面板打开时自动恢复 */
+  }
+
+  canvas#bg {
+    position: fixed; inset: 0;
+    display: block;
+    z-index: 1;
+  }
+
+  /* 鼠标光晕 */
+  #glow {
+    position: fixed;
+    left: 0; top: 0;
+    width: 800px; height: 800px;
+    border-radius: 50%;
+    pointer-events: none;
+    background: radial-gradient(circle, var(--glow) 0%, transparent 70%);
+    transform: translate3d(-1000px, -1000px, 0) translate(-50%, -50%);
+    mix-blend-mode: overlay;
+    z-index: 2;
+    will-change: transform;
+    transition: opacity var(--theme-duration) var(--theme-ease);
+  }
+
+  /* UI 层 */
+  #ui {
+    position: fixed; inset: 0;
+    z-index: 10;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 4vw 6vw;
+    transition: var(--transition-theme);
+  }
+
+  /* 顶部区域 */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  .brand {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .brand-title {
+    font-size: 2.4vw;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    line-height: 1;
+  }
+
+  .brand-sub {
+    font-size: 0.9vw;
+    font-weight: 400;
+    letter-spacing: 0.3em;
+    color: var(--text-sub);
+    text-transform: uppercase;
+    font-feature-settings: "tnum" 1;
+  }
+
+  .brand-line {
+    width: 12vw;
+    height: 1px;
+    background-color: var(--line);
+    margin-top: 10px;
+    transition: var(--transition-theme);
+  }
+
+  /* ---------- 右上角：主题切换按钮 ---------- */
+  .header-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 1.8vh;
+  }
+
+  .theme-toggle {
+    pointer-events: auto;
+    -webkit-appearance: none;
+    appearance: none;
+    width: 2.8vw;
+    height: 2.8vw;
+    min-width: 34px;
+    min-height: 34px;
+    max-width: 48px;
+    max-height: 48px;
+    padding: 0;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    background-color: transparent;
+    color: var(--text-main);
+    display: grid;
+    place-items: center;
+    cursor: none;
+    outline: none;
+    opacity: 0.75;
+    transition: var(--transition-theme),
+                transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .theme-toggle:hover {
+    opacity: 1;
+    background-color: var(--glow);
+    border-color: var(--accent);
+    transform: scale(1.08);
+  }
+
+  .theme-toggle:active {
+    transform: scale(0.92);
+  }
+
+  .theme-toggle svg {
+    grid-area: 1 / 1;
+    width: 52%;
+    height: 52%;
+    display: block;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    will-change: transform, opacity;
+    transition: opacity 700ms cubic-bezier(0.65, 0, 0.35, 1),
+                transform 700ms cubic-bezier(0.65, 0, 0.35, 1);
+  }
+
+  .theme-toggle .icon-moon {
+    opacity: 1;
+    transform: rotate(0deg) scale(1);
+  }
+  .theme-toggle .icon-sun {
+    opacity: 0;
+    transform: rotate(90deg) scale(0.55);
+  }
+  body.dark-theme .theme-toggle .icon-moon {
+    opacity: 0;
+    transform: rotate(-90deg) scale(0.55);
+  }
+  body.dark-theme .theme-toggle .icon-sun {
+    opacity: 1;
+    transform: rotate(0deg) scale(1);
+  }
+
+  /* 中部左侧：大时钟 */
+  .main-left {
+    position: absolute;
+    top: 30%;
+    left: 6vw;
+    display: flex;
+    flex-direction: column;
+    gap: 2vh;
+  }
+
+  .clock-large {
+    font-size: 11vw;
+    font-weight: 300;
+    line-height: 0.9;
+    letter-spacing: -0.04em;
+    font-variant-numeric: tabular-nums;
+    background: linear-gradient(180deg, var(--text-main) 30%, var(--text-sub) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .date-row {
+    display: flex;
+    align-items: center;
+    gap: 1.5vw;
+    font-size: 1.1vw;
+    font-weight: 400;
+    color: var(--text-sub);
+    letter-spacing: 0.15em;
+    font-feature-settings: "tnum" 1;
+  }
+
+  .date-row .divider {
+    width: 1px; height: 1em;
+    background-color: var(--line);
+    transition: var(--transition-theme);
+  }
+
+  /* ---------- 工具按钮行（记忆游戏 / 计时器） ---------- */
+  .tool-row {
+    display: flex;
+    gap: 0.8vw;
+    margin-top: 2.4vh;
+    pointer-events: auto;   /* UI 层为 none，这里单独开启 */
+    flex-wrap: wrap;
+  }
+
+  .tool-btn {
+    -webkit-appearance: none;
+    appearance: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55em;
+    padding: 0.85vh 1.1vw;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background-color: transparent;
+    color: var(--text-sub);
+    font-family: inherit;
+    font-size: 0.75vw;
+    font-weight: 400;
+    letter-spacing: 0.16em;
+    line-height: 1;
+    cursor: none;
+    outline: none;
+    white-space: nowrap;
+    transition: var(--transition-theme),
+                transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+                background-color 0.4s ease;
+  }
+
+  .tool-btn svg {
+    width: 1.05em;
+    height: 1.05em;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    opacity: 0.85;
+    transition: opacity 0.35s ease;
+  }
+
+  .tool-btn:hover {
+    color: var(--text-main);
+    border-color: var(--accent);
+    background-color: var(--glow);
+    transform: translateY(-1px);
+  }
+
+  .tool-btn:hover svg { opacity: 1; }
+
+  .tool-btn:active { transform: translateY(0) scale(0.97); }
+
+  .tool-btn[aria-expanded="true"] {
+    color: var(--text-main);
+    border-color: var(--accent);
+    background-color: var(--glow);
+  }
+
+  /* 中部右侧：年份与进度 */
+  .main-right {
+    position: absolute;
+    top: 35%;
+    right: 6vw;
+    width: 28vw;
+    display: flex;
+    flex-direction: column;
+    gap: 2vh;
+    text-align: right;
+  }
+
+  .work-label {
+    font-size: 0.8vw;
+    font-weight: 400;
+    color: var(--text-light);
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    margin-bottom: 1vh;
+  }
+
+  .year-display {
+    display: flex;
+    align-items: baseline;
+    justify-content: flex-end;
+    gap: 0.5vw;
+  }
+
+  .year-num {
+    font-size: 6vw;
+    font-weight: 300;
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+
+  .year-label {
+    font-size: 1vw;
+    font-weight: 400;
+    color: var(--text-sub);
+    letter-spacing: 0.2em;
+  }
+
+  .progress-container {
+    margin-top: 2vh;
+    width: 100%;
+  }
+
+  .progress-bar {
+    width: 100%;
+    height: 1px;
+    background-color: var(--line);
+    position: relative;
+    margin-bottom: 1vh;
+    transition: var(--transition-theme);
+  }
+
+  .progress-fill {
+    position: absolute;
+    left: 0; top: 0;
+    height: 100%;
+    background-color: var(--accent);
+    width: 0%;
+    transition: width 1s ease, background-color var(--theme-duration) var(--theme-ease);
+  }
+
+  .progress-text {
+    font-size: 0.8vw;
+    font-weight: 400;
+    color: var(--text-light);
+    letter-spacing: 0.14em;
+    font-feature-settings: "tnum" 1;
+  }
+
+  /* 底部状态栏 */
+  .footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    font-size: 0.75vw;
+    font-weight: 400;
+    color: var(--text-light);
+    letter-spacing: 0.12em;
+  }
+
+  .footer-left {
+    display: flex;
+    gap: 2vw;
+    align-items: center;
+  }
+
+  .status-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background-color: var(--accent);
+    display: inline-block;
+    margin-right: 8px;
+    opacity: 0.6;
+    animation: pulse 2s infinite;
+    transition: background-color var(--theme-duration) var(--theme-ease);
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 0.2; }
+  }
+
+  /* 音频响应指示条 */
+  .audio-bars {
+    display: flex;
+    gap: 3px;
+    align-items: flex-end;
+    height: 16px;
+    margin-left: 12px;
+  }
+
+  .audio-bars span {
+    width: 3px;
+    background-color: var(--accent);
+    border-radius: 1px;
+    height: 2px;
+    transition: height 0.1s ease, background-color var(--theme-duration) var(--theme-ease);
+    opacity: 0.5;
+  }
+
+  /* ============================================================
+     功能面板（记忆游戏 / 计时器）
+     ============================================================ */
+  .panel {
+    position: fixed;
+    left: 6vw;
+    bottom: 15vh;
+    width: min(24vw, 340px);
+    min-width: 250px;
+    padding: 1.8vh 1.3vw 1.6vh;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    background-color: var(--panel-bg);
+    -webkit-backdrop-filter: blur(16px) saturate(1.2);
+    backdrop-filter: blur(16px) saturate(1.2);
+    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.12);
+    display: flex;
+    flex-direction: column;
+    gap: 1.4vh;
+    z-index: 20;
+    pointer-events: auto;
+    cursor: default;
+
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(14px) scale(0.985);
+    transform-origin: left bottom;
+    transition: opacity 0.45s cubic-bezier(0.65, 0, 0.35, 1),
+                transform 0.45s cubic-bezier(0.65, 0, 0.35, 1),
+                visibility 0s linear 0.45s,
+                background-color var(--theme-duration) var(--theme-ease),
+                border-color var(--theme-duration) var(--theme-ease),
+                box-shadow var(--theme-duration) var(--theme-ease);
+  }
+
+  body.dark-theme .panel {
+    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.5);
+  }
+
+  .panel.open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+    transition: opacity 0.45s cubic-bezier(0.65, 0, 0.35, 1),
+                transform 0.45s cubic-bezier(0.65, 0, 0.35, 1),
+                visibility 0s,
+                background-color var(--theme-duration) var(--theme-ease),
+                border-color var(--theme-duration) var(--theme-ease),
+                box-shadow var(--theme-duration) var(--theme-ease);
+  }
+
+  .panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .panel-title {
+    font-size: 0.8vw;
+    font-weight: 400;
+    letter-spacing: 0.24em;
+    color: var(--text-main);
+    text-transform: uppercase;
+  }
+
+  .panel-close {
+    -webkit-appearance: none;
+    appearance: none;
+    border: none;
+    background: transparent;
+    color: var(--text-light);
+    font-family: inherit;
+    font-size: 1.1vw;
+    line-height: 1;
+    width: 1.6em;
+    height: 1.6em;
+    border-radius: 50%;
+    cursor: default;
+    display: grid;
+    place-items: center;
+    transition: color 0.3s ease, background-color 0.3s ease;
+  }
+
+  .panel-close:hover {
+    color: var(--text-main);
+    background-color: var(--glow);
+  }
+
+  /* --- 计时器 --- */
+  .timer-display {
+    font-size: 2.7vw;
+    font-weight: 300;
+    line-height: 1;
+    letter-spacing: 0.01em;
+    text-align: center;
+    padding: 1.2vh 0 0.6vh;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-main);
+    transition: color 0.4s ease, opacity 0.4s ease;
+  }
+
+  .timer-display.done {
+    animation: timerFlash 0.9s ease-in-out infinite;
+  }
+
+  @keyframes timerFlash {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .timer-presets,
+  .timer-controls {
+    display: flex;
+    gap: 0.45vw;
+  }
+
+  .mini-btn {
+    -webkit-appearance: none;
+    appearance: none;
+    flex: 1;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    background-color: transparent;
+    color: var(--text-sub);
+    font-family: inherit;
+    font-size: 0.68vw;
+    letter-spacing: 0.12em;
+    padding: 0.9vh 0;
+    cursor: default;
+    outline: none;
+    transition: var(--transition-theme),
+                transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1),
+                background-color 0.35s ease;
+  }
+
+  .mini-btn:hover {
+    color: var(--text-main);
+    border-color: var(--accent);
+    background-color: var(--glow);
+  }
+
+  .mini-btn:active { transform: scale(0.96); }
+
+  .mini-btn.primary {
+    border-color: var(--accent);
+    color: var(--text-main);
+  }
+
+  /* ============================================================
+     记忆序列小游戏
+     ============================================================ */
+  .panel-game {
+    width: min(20vw, 290px);
+    min-width: 230px;
+  }
+
+  .game-stats {
+    display: flex;
+    justify-content: space-between;
+    gap: 1vw;
+  }
+
+  .game-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3vh;
+  }
+
+  .game-stat.right {
+    align-items: flex-end;
+  }
+
+  .stat-label {
+    font-size: 0.6vw;
+    letter-spacing: 0.22em;
+    color: var(--text-light);
+    text-transform: uppercase;
+  }
+
+  .stat-value {
+    font-size: 1.2vw;
+    font-weight: 300;
+    color: var(--text-main);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    transition: color 0.4s ease;
+  }
+
+  .game-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    aspect-ratio: 1 / 1;
+    width: 100%;
+    margin: 0.4vh 0;
+  }
+
+  .game-cell {
+    -webkit-appearance: none;
+    appearance: none;
+    position: relative;
+    border: 1px solid var(--line);
+    background-color: transparent;
+    border-radius: 3px;
+    cursor: pointer;
+    outline: none;
+    padding: 0;
+    transition: background-color 0.18s ease,
+                border-color 0.18s ease,
+                transform 0.18s ease,
+                box-shadow 0.22s ease;
+  }
+
+  /* 内部小圆点，默认极淡 */
+  .game-cell::before {
+    content: '';
+    position: absolute;
+    inset: 26%;
+    border-radius: 50%;
+    background-color: var(--accent);
+    opacity: 0.08;
+    transition: opacity 0.22s ease, transform 0.22s ease,
+                box-shadow 0.22s ease;
+  }
+
+  .game-cell:hover::before {
+    opacity: 0.2;
+  }
+
+  /* 闪烁（序列播放或玩家点击） */
+  .game-cell.flash {
+    border-color: var(--accent);
+    background-color: rgba(var(--accent-rgb), 0.1);
+    box-shadow: 0 0 14px rgba(var(--accent-rgb), 0.22);
+  }
+
+  .game-cell.flash::before {
+    opacity: 1;
+    transform: scale(1.08);
+    box-shadow: 0 0 12px rgba(var(--accent-rgb), 0.55);
+  }
+
+  /* 错误 */
+  .game-cell.wrong {
+    border-color: #e35050;
+    background-color: rgba(227, 80, 80, 0.1);
+    box-shadow: 0 0 14px rgba(227, 80, 80, 0.28);
+  }
+
+  .game-cell.wrong::before {
+    background-color: #e35050;
+    opacity: 1;
+    box-shadow: 0 0 12px rgba(227, 80, 80, 0.6);
+  }
+
+  .game-status {
+    font-size: 0.68vw;
+    letter-spacing: 0.16em;
+    color: var(--text-sub);
+    text-align: center;
+    min-height: 1.5em;
+    transition: color 0.35s ease, opacity 0.35s ease;
+  }
+
+  .game-controls {
+    display: flex;
+    gap: 0.45vw;
+  }
+
+  .game-controls .mini-btn {
+    flex: 1;
+  }
+
+  /* ---------- 面板打开时恢复鼠标指针 ---------- */
+  body.has-panel,
+  body.has-panel .theme-toggle,
+  body.has-panel .tool-btn,
+  body.has-panel .panel-close,
+  body.has-panel .mini-btn {
+    cursor: default;
+  }
+
+  body.has-panel .tool-btn,
+  body.has-panel .panel-close,
+  body.has-panel .mini-btn,
+  body.has-panel .game-cell,
+  body.has-panel .theme-toggle {
+    cursor: pointer;
+  }
+</style>
+</head>
+<body class="light-theme">
+
+  <canvas id="bg"></canvas>
+  <div id="glow"></div>
+
+  <div id="ui">
+    <!-- 顶部：品牌信息 -->
+    <header class="header">
+      <div class="brand">
+        <div class="brand-title">RHINE LAB</div>
+        <div class="brand-sub">SYNTHESIZE INFORMATION ANALYSIS OS</div>
+        <div class="brand-line"></div>
+        <div class="brand-sub" style="letter-spacing:0.1em; font-size:0.7vw;">RHINE LAB / DAILY TERMINAL</div>
+      </div>
+
+      <div class="header-right">
+        <!-- 手动切换深浅色按钮 -->
+        <button id="themeToggle" class="theme-toggle" type="button"
+                aria-label="切换到深色主题" title="切换到深色主题">
+          <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M20.2 14.6A8.6 8.6 0 0 1 9.4 3.8a8.6 8.6 0 1 0 10.8 10.8z"/>
+          </svg>
+          <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="4.2"/>
+            <path d="M12 2.6v2.1M12 19.3v2.1M2.6 12h2.1M19.3 12h2.1M5.3 5.3l1.5 1.5M17.2 17.2l1.5 1.5M18.7 5.3l-1.5 1.5M6.8 17.2l-1.5 1.5"/>
+          </svg>
+        </button>
+
+        <div class="brand" style="text-align:right; align-items:flex-end;">
+          <div class="brand-sub">PERSONAL WORKSPACE</div>
+        </div>
+      </div>
+    </header>
+
+    <!-- 中部左侧：时钟 + 工具按钮 -->
+    <div class="main-left">
+      <div class="clock-large" id="clock">18:23</div>
+      <div class="date-row">
+        <span id="date">2026.09.19</span>
+        <span class="divider"></span>
+        <span id="weekday">星期六</span>
+      </div>
+
+      <!-- 功能模块按钮 -->
+      <div class="tool-row">
+        <button class="tool-btn" id="btnGame" type="button" aria-expanded="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="4" y="4" width="6.5" height="6.5" rx="1.2"/>
+            <rect x="13.5" y="4" width="6.5" height="6.5" rx="1.2"/>
+            <rect x="4" y="13.5" width="6.5" height="6.5" rx="1.2"/>
+            <rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.2"/>
+          </svg>
+          <span>记忆游戏</span>
+        </button>
+
+        <button class="tool-btn" id="btnTimer" type="button" aria-expanded="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="13.5" r="7.5"/>
+            <path d="M12 9.8v3.7l2.4 1.9M9.2 2.6h5.6"/>
+          </svg>
+          <span>计时器</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 中部右侧：年份与进度 -->
+    <div class="main-right">
+      <div class="work-label">时间日期</div>
+      <div class="year-display">
+        <div class="year-num" id="year">2026</div>
+        <div class="year-label">YEAR</div>
+      </div>
+      <div class="progress-container">
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="progress-text" id="progressText">今年已走过 71.7%</div>
+      </div>
+    </div>
+
+    <!-- 底部：状态栏 -->
+    <footer class="footer">
+      <div class="footer-left">
+        <span><span class="status-dot"></span>SESSION AUTHORIZED</span>
+        <span>3D 开启</span>
+        <div class="audio-bars" id="audioBars">
+          <span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- ============================================================
+       功能面板：记忆序列小游戏
+       ============================================================ -->
+  <section class="panel panel-game" id="panelGame" aria-hidden="true">
+    <div class="panel-head">
+      <span class="panel-title">记忆序列</span>
+      <button class="panel-close" type="button" data-close aria-label="关闭">×</button>
+    </div>
+
+    <div class="game-stats">
+      <div class="game-stat">
+        <div class="stat-label">等级</div>
+        <div class="stat-value" id="gameLevel">0</div>
+      </div>
+      <div class="game-stat right">
+        <div class="stat-label">最高</div>
+        <div class="stat-value" id="gameBest">0</div>
+      </div>
+    </div>
+
+    <div class="game-grid" id="gameGrid">
+      <button class="game-cell" type="button" data-i="0" aria-label="格子1"></button>
+      <button class="game-cell" type="button" data-i="1" aria-label="格子2"></button>
+      <button class="game-cell" type="button" data-i="2" aria-label="格子3"></button>
+      <button class="game-cell" type="button" data-i="3" aria-label="格子4"></button>
+      <button class="game-cell" type="button" data-i="4" aria-label="格子5"></button>
+      <button class="game-cell" type="button" data-i="5" aria-label="格子6"></button>
+      <button class="game-cell" type="button" data-i="6" aria-label="格子7"></button>
+      <button class="game-cell" type="button" data-i="7" aria-label="格子8"></button>
+      <button class="game-cell" type="button" data-i="8" aria-label="格子9"></button>
+    </div>
+
+    <div class="game-status" id="gameStatus">点击开始 · 记住闪烁顺序</div>
+
+    <div class="game-controls">
+      <button class="mini-btn primary" type="button" id="gameStart">开始游戏</button>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       功能面板：计时器
+       ============================================================ -->
+  <section class="panel" id="panelTimer" aria-hidden="true">
+    <div class="panel-head">
+      <span class="panel-title">计时器</span>
+      <button class="panel-close" type="button" data-close aria-label="关闭">×</button>
+    </div>
+
+    <div class="timer-display" id="timerDisplay">00:00</div>
+
+    <div class="timer-presets">
+      <button class="mini-btn" type="button" data-min="1">1 分</button>
+      <button class="mini-btn" type="button" data-min="5">5 分</button>
+      <button class="mini-btn" type="button" data-min="15">15 分</button>
+      <button class="mini-btn" type="button" data-min="25">25 分</button>
+    </div>
+
+    <div class="timer-controls">
+      <button class="mini-btn primary" type="button" id="timerToggle">开始</button>
+      <button class="mini-btn" type="button" id="timerReset">重置</button>
+    </div>
+  </section>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ============================================================
+     1. 环境初始化与 4K 适配
+     ============================================================ */
+  const canvas = document.getElementById('bg');
+  const ctx = canvas.getContext('2d', { alpha: false });
+  const glowEl = document.getElementById('glow');
+  const clockEl = document.getElementById('clock');
+  const dateEl = document.getElementById('date');
+  const weekdayEl = document.getElementById('weekday');
+  const yearEl = document.getElementById('year');
+  const progressFill = document.getElementById('progressFill');
+  const progressText = document.getElementById('progressText');
+  const audioBars = document.querySelectorAll('#audioBars span');
+  const themeToggle = document.getElementById('themeToggle');
+
+  let W = 0, H = 0, DPR = 1;
+
+  function resize() {
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth;
+    H = window.innerHeight;
+
+    canvas.width = Math.floor(W * DPR);
+    canvas.height = Math.floor(H * DPR);
+    canvas.style.width = W + 'px';
+    canvas.style.height = H + 'px';
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+
+    initIsometricGrid();
+  }
+
+  /* ============================================================
+     2. 鼠标追踪与视差
+     ============================================================ */
+  const mouse = {
+    x: W / 2, y: H / 2,
+    tx: W / 2, ty: H / 2
+  };
+
+  window.addEventListener('mousemove', (e) => {
+    mouse.tx = e.clientX;
+    mouse.ty = e.clientY;
+  }, { passive: true });
+
+  window.addEventListener('touchmove', (e) => {
+    if (e.touches[0]) {
+      mouse.tx = e.touches[0].clientX;
+      mouse.ty = e.touches[0].clientY;
+    }
+  }, { passive: true });
+
+  /* ============================================================
+     3. 音频响应（Wallpaper Engine 专属 API）
+     ============================================================ */
+  let audioData = null;
+  let bassSmooth = 0;
+  let volSmooth = 0;
+
+  if (typeof window.wallpaperRegisterAudioListener === 'function') {
+    window.wallpaperRegisterAudioListener((arr) => {
+      audioData = arr;
+    });
+  }
+
+  function computeLevel() {
+    if (!audioData || !audioData.length) return 0;
+    const n = Math.min(32, audioData.length);
+    let s = 0;
+    for (let i = 0; i < n; i++) s += audioData[i];
+    return s / n;
+  }
+
+  /* ============================================================
+     4. 等距 3D 阵列 (Isometric Grid)
+     ============================================================ */
+  let gridCols = 0;
+  let gridRows = 0;
+  let tileW = 0, tileH = 0, tileZ = 0;
+  let offsetX = 0, offsetY = 0;
+  let gridData = [];
+  let sortedGrid = [];
+
+  function initIsometricGrid() {
+    const baseTile = Math.max(W, H) / 28;
+    tileW = baseTile;
+    tileH = baseTile * 0.5;
+    tileZ = baseTile * 1.5;
+
+    gridCols = Math.ceil(W / tileW) + 4;
+    gridRows = Math.ceil(H / tileH) + 4;
+
+    offsetX = W / 2 - (gridCols * tileW) / 2;
+    offsetY = H / 2 - (gridRows * tileH) / 2 + tileZ;
+
+    gridData = [];
+    for (let r = 0; r < gridRows; r++) {
+      for (let c = 0; c < gridCols; c++) {
+        gridData.push({
+          c: c, r: r,
+          baseZ: Math.sin(c * 0.5) * Math.cos(r * 0.5) * tileZ * 0.3,
+          currentZ: 0,
+          phase: Math.random() * Math.PI * 2
+        });
+      }
+    }
+
+    sortedGrid = gridData.slice().sort((a, b) => (b.r + b.c) - (a.r + a.c));
+  }
+
+  function project(c, r, z) {
+    const isoX = (c - r) * (tileW / 2);
+    const isoY = (c + r) * (tileH / 2) - z;
+    return {
+      x: offsetX + isoX,
+      y: offsetY + isoY
+    };
+  }
+
+  /* ============================================================
+     5. 主题调色板与颜色插值
+     ============================================================ */
+  const palettes = {
+    light: {
+      bgBase: [242, 241, 237],
+      bgMid:  [255, 255, 255],
+      top:    [255, 255, 255],
+      left:   [227, 225, 219],
+      right:  [212, 210, 204],
+      stroke: [0, 0, 0],
+      strokeAlpha: 0.06
+    },
+    dark: {
+      bgBase: [10, 11, 16],
+      bgMid:  [20, 22, 31],
+      top:    [20, 22, 31],
+      left:   [13, 14, 20],
+      right:  [8, 9, 14],
+      stroke: [255, 255, 255],
+      strokeAlpha: 0.08
+    }
+  };
+
+  const activeColors = {
+    bgBase: 'rgb(242,241,237)',
+    bgMid:  'rgb(255,255,255)',
+    top:    'rgb(255,255,255)',
+    left:   'rgb(227,225,219)',
+    right:  'rgb(212,210,204)',
+    stroke: 'rgba(0,0,0,0.06)'
+  };
+
+  function mixRgb(a, b, t) {
+    return [
+      a[0] + (b[0] - a[0]) * t,
+      a[1] + (b[1] - a[1]) * t,
+      a[2] + (b[2] - a[2]) * t
+    ];
+  }
+
+  function rgbStr(c) {
+    return 'rgb(' + (c[0] | 0) + ',' + (c[1] | 0) + ',' + (c[2] | 0) + ')';
+  }
+
+  function rgbaStr(c, a) {
+    return 'rgba(' + (c[0] | 0) + ',' + (c[1] | 0) + ',' + (c[2] | 0) + ',' + a.toFixed(3) + ')';
+  }
+
+  function refreshActiveColors(t) {
+    const L = palettes.light, D = palettes.dark;
+
+    activeColors.bgBase = rgbStr(mixRgb(L.bgBase, D.bgBase, t));
+    activeColors.bgMid  = rgbStr(mixRgb(L.bgMid,  D.bgMid,  t));
+    activeColors.top    = rgbStr(mixRgb(L.top,    D.top,    t));
+    activeColors.left   = rgbStr(mixRgb(L.left,   D.left,   t));
+    activeColors.right  = rgbStr(mixRgb(L.right,  D.right,  t));
+
+    const strokeRGB   = mixRgb(L.stroke, D.stroke, t);
+    const strokeAlpha = L.strokeAlpha + (D.strokeAlpha - L.strokeAlpha) * t;
+    activeColors.stroke = rgbaStr(strokeRGB, strokeAlpha);
+  }
+
+  /* ============================================================
+     6. 主题过渡动画控制
+     ============================================================ */
+  const THEME_DURATION = 900;
+
+  let themeMix = 0;
+  let themeTarget = 0;
+  let themeFrom = 0;
+  let themeStart = 0;
+  let themeAnimating = false;
+
+  function easeInOutCubic(t) {
+    return t < 0.5
+      ? 4 * t * t * t
+      : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  }
+
+  function setThemeTarget(target, instant) {
+    if (instant) {
+      themeMix = themeTarget = themeFrom = target;
+      themeAnimating = false;
+      refreshActiveColors(themeMix);
+    } else {
+      themeFrom = themeMix;
+      themeTarget = target;
+      themeStart = performance.now();
+      themeAnimating = true;
+    }
+  }
+
+  function updateThemeMix(now) {
+    if (!themeAnimating) return;
+
+    const raw = Math.min(1, (now - themeStart) / THEME_DURATION);
+    const eased = easeInOutCubic(raw);
+    themeMix = themeFrom + (themeTarget - themeFrom) * eased;
+
+    if (raw >= 1) {
+      themeMix = themeTarget;
+      themeAnimating = false;
+    }
+    refreshActiveColors(themeMix);
+  }
+
+  /* ============================================================
+     7. 时钟与 UI 更新
+     ============================================================ */
+  const WEEK = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+
+  function updateUI() {
+    const d = new Date();
+    const hh = String(d.getHours()).padStart(2, '0');
+    const mm = String(d.getMinutes()).padStart(2, '0');
+    clockEl.textContent = hh + ':' + mm;
+
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    dateEl.textContent = `${y}.${m}.${day}`;
+    weekdayEl.textContent = WEEK[d.getDay()];
+    yearEl.textContent = y;
+
+    const start = new Date(y, 0, 1);
+    const end = new Date(y + 1, 0, 1);
+    const progress = ((d - start) / (end - start)) * 100;
+    progressFill.style.width = progress + '%';
+    progressText.textContent = `今年已走过 ${progress.toFixed(1)}%`;
+  }
+
+  /* ============================================================
+     8. 记忆序列小游戏
+     ============================================================ */
+  const GAME_BEST_KEY = 'rhine-game-best';
+  const gameGrid = document.getElementById('gameGrid');
+  const gameCells = gameGrid.querySelectorAll('.game-cell');
+  const gameLevelEl = document.getElementById('gameLevel');
+  const gameBestEl = document.getElementById('gameBest');
+  const gameStatus = document.getElementById('gameStatus');
+  const gameStartBtn = document.getElementById('gameStart');
+
+  let gameSequence = [];
+  let gameInputIndex = 0;
+  let gameLevel = 0;
+  let gameState = 'idle';        // idle | showing | input | over
+  let gameTimers = [];
+
+  function loadBest() {
+    try {
+      const v = parseInt(localStorage.getItem(GAME_BEST_KEY), 10);
+      if (!isNaN(v) && v > 0) gameBestEl.textContent = v;
+    } catch (e) {}
+  }
+  loadBest();
+
+  function saveBest(v) {
+    try { localStorage.setItem(GAME_BEST_KEY, String(v)); } catch (e) {}
+  }
+
+  function clearGameTimers() {
+    gameTimers.forEach((t) => clearTimeout(t));
+    gameTimers = [];
+  }
+
+  function later(fn, delay) {
+    const t = setTimeout(fn, delay);
+    gameTimers.push(t);
+    return t;
+  }
+
+  function flashCell(i, duration) {
+    const cell = gameCells[i];
+    if (!cell) return;
+    cell.classList.add('flash');
+    later(() => cell.classList.remove('flash'), duration);
+  }
+
+  function playSequence() {
+    gameState = 'showing';
+    gameStatus.textContent = '观看序列…';
+
+    const lead = 420;
+    const interval = 540;
+    const flashDur = 380;
+
+    gameSequence.forEach((idx, i) => {
+      later(() => flashCell(idx, flashDur), lead + i * interval);
+    });
+
+    later(() => {
+      gameState = 'input';
+      gameInputIndex = 0;
+      gameStatus.textContent = '轮到你了';
+    }, lead + gameSequence.length * interval);
+  }
+
+  function nextRound() {
+    gameLevel += 1;
+    gameLevelEl.textContent = gameLevel;
+    gameSequence.push(Math.floor(Math.random() * 9));
+    playSequence();
+  }
+
+  function startGame() {
+    clearGameTimers();
+    gameSequence = [];
+    gameLevel = 0;
+    gameInputIndex = 0;
+    gameLevelEl.textContent = '0';
+    gameCells.forEach((c) => c.classList.remove('flash', 'wrong'));
+    gameState = 'showing';
+    gameStatus.textContent = '准备…';
+    gameStartBtn.textContent = '重新开始';
+    later(nextRound, 500);
+  }
+
+  function resetGame() {
+    clearGameTimers();
+    gameSequence = [];
+    gameInputIndex = 0;
+    gameLevel = 0;
+    gameState = 'idle';
+    gameLevelEl.textContent = '0';
+    gameCells.forEach((c) => c.classList.remove('flash', 'wrong'));
+    gameStatus.textContent = '点击开始 · 记住闪烁顺序';
+    gameStartBtn.textContent = '开始游戏';
+  }
+
+  function handleGameCellClick(i) {
+    if (gameState !== 'input') return;
+
+    const expected = gameSequence[gameInputIndex];
+
+    // 点击反馈
+    flashCell(i, 220);
+
+    if (i !== expected) {
+      // 错误
+      gameState = 'over';
+      const cell = gameCells[i];
+      cell.classList.add('wrong');
+      later(() => cell.classList.remove('wrong'), 700);
+      gameStatus.textContent = '序列错误 · 点击重新开始';
+      gameStartBtn.textContent = '重新开始';
+
+      const completed = gameLevel - 1;
+      const currentBest = parseInt(gameBestEl.textContent, 10) || 0;
+      if (completed > currentBest) {
+        gameBestEl.textContent = completed;
+        saveBest(completed);
+      }
+      return;
+    }
+
+    gameInputIndex += 1;
+    if (gameInputIndex >= gameSequence.length) {
+      // 本轮完成
+      gameState = 'showing';
+      gameStatus.textContent = '正确！';
+      later(nextRound, 680);
+    }
+  }
+
+  gameCells.forEach((cell, i) => {
+    cell.addEventListener('click', () => handleGameCellClick(i));
+  });
+
+  gameStartBtn.addEventListener('click', startGame);
+
+  /* ============================================================
+     9. 计时器
+     ============================================================ */
+  const timerDisplay = document.getElementById('timerDisplay');
+  const timerToggle = document.getElementById('timerToggle');
+  const timerReset = document.getElementById('timerReset');
+  const timerPresets = document.querySelectorAll('.timer-presets .mini-btn');
+
+  let timerTotal = 0;
+  let timerRemain = 0;
+  let timerRunning = false;
+  let timerEndAt = 0;
+  let lastRenderedSec = -1;
+
+  const pad2 = (n) => String(n).padStart(2, '0');
+
+  function formatTime(sec) {
+    sec = Math.max(0, Math.ceil(sec));
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    const s = sec % 60;
+    return h > 0 ? `${pad2(h)}:${pad2(m)}:${pad2(s)}` : `${pad2(m)}:${pad2(s)}`;
+  }
+
+  function renderTimer(force) {
+    const sec = Math.max(0, Math.ceil(timerRemain));
+    if (!force && sec === lastRenderedSec) return;
+    lastRenderedSec = sec;
+    timerDisplay.textContent = formatTime(timerRemain);
+  }
+
+  function setTimerPreset(minutes) {
+    timerRunning = false;
+    timerTotal = minutes * 60;
+    timerRemain = timerTotal;
+    timerToggle.textContent = '开始';
+    timerDisplay.classList.remove('done');
+    renderTimer(true);
+  }
+
+  timerPresets.forEach((btn) => {
+    btn.addEventListener('click', function () {
+      setTimerPreset(Number(btn.dataset.min) || 0);
+    });
+  });
+
+  timerToggle.addEventListener('click', function () {
+    if (timerRunning) {
+      timerRemain = Math.max(0, (timerEndAt - performance.now()) / 1000);
+      timerRunning = false;
+      timerToggle.textContent = '继续';
+      renderTimer(true);
+    } else {
+      if (timerRemain <= 0) return;
+      timerEndAt = performance.now() + timerRemain * 1000;
+      timerRunning = true;
+      timerToggle.textContent = '暂停';
+      timerDisplay.classList.remove('done');
+    }
+  });
+
+  timerReset.addEventListener('click', function () {
+    timerRunning = false;
+    timerRemain = timerTotal;
+    timerToggle.textContent = '开始';
+    timerDisplay.classList.remove('done');
+    renderTimer(true);
+  });
+
+  function updateTimer(now) {
+    if (!timerRunning) return;
+
+    const remain = (timerEndAt - now) / 1000;
+    if (remain <= 0) {
+      timerRemain = 0;
+      timerRunning = false;
+      timerToggle.textContent = '开始';
+      timerDisplay.classList.add('done');
+      renderTimer(true);
+      return;
+    }
+    timerRemain = remain;
+    renderTimer(false);
+  }
+
+  /* ============================================================
+     10. 面板开关逻辑
+     ============================================================ */
+  const panelGame = document.getElementById('panelGame');
+  const panelTimer = document.getElementById('panelTimer');
+  const btnGame = document.getElementById('btnGame');
+  const btnTimer = document.getElementById('btnTimer');
+
+  const PANELS = [
+    { panel: panelGame,  btn: btnGame  },
+    { panel: panelTimer, btn: btnTimer }
+  ];
+
+  function closeAllPanels() {
+    PANELS.forEach(({ panel, btn }) => {
+      panel.classList.remove('open');
+      panel.setAttribute('aria-hidden', 'true');
+      btn.setAttribute('aria-expanded', 'false');
+    });
+    document.body.classList.remove('has-panel');
+    // 关闭时重置游戏
+    resetGame();
+  }
+
+  function openPanel(panel, btn) {
+    closeAllPanels();
+    panel.classList.add('open');
+    panel.setAttribute('aria-hidden', 'false');
+    btn.setAttribute('aria-expanded', 'true');
+    document.body.classList.add('has-panel');
+  }
+
+  function togglePanel(panel, btn) {
+    if (panel.classList.contains('open')) {
+      closeAllPanels();
+    } else {
+      openPanel(panel, btn);
+    }
+  }
+
+  btnGame.addEventListener('click', function (e) {
+    e.stopPropagation();
+    togglePanel(panelGame, btnGame);
+  });
+
+  btnTimer.addEventListener('click', function (e) {
+    e.stopPropagation();
+    togglePanel(panelTimer, btnTimer);
+  });
+
+  document.querySelectorAll('[data-close]').forEach((btn) => {
+    btn.addEventListener('click', closeAllPanels);
+  });
+
+  // 点击面板外部关闭
+  document.addEventListener('pointerdown', function (e) {
+    if (!document.body.classList.contains('has-panel')) return;
+    if (e.target.closest('.panel') || e.target.closest('.tool-btn')) return;
+    closeAllPanels();
+  });
+
+  // Esc 关闭
+  window.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeAllPanels();
+  });
+
+  /* ============================================================
+     11. 主渲染循环
+     ============================================================ */
+  let time = 0;
+
+  function loop(now) {
+    time = now * 0.001;
+
+    /* --- 11.1 主题插值推进 --- */
+    updateThemeMix(now);
+
+    /* --- 11.2 计时器推进 --- */
+    updateTimer(now);
+
+    /* --- 11.3 鼠标插值 --- */
+    mouse.x += (mouse.tx - mouse.x) * 0.06;
+    mouse.y += (mouse.ty - mouse.y) * 0.06;
+
+    glowEl.style.transform = `translate3d(${mouse.x}px, ${mouse.y}px, 0) translate(-50%, -50%)`;
+
+    const parX = (mouse.x - W / 2) * 0.02;
+    const parY = (mouse.y - H / 2) * 0.02;
+
+    /* --- 11.4 音频数值 --- */
+    const level = computeLevel();
+    volSmooth += (level - volSmooth) * 0.15;
+    bassSmooth += (Math.min(1, level * 1.8) - bassSmooth) * 0.2;
+
+    audioBars.forEach((bar, i) => {
+      const val = audioData ? (audioData[i * 4] || 0) : 0;
+      const h = 2 + val * 14;
+      bar.style.height = h + 'px';
+      bar.style.opacity = 0.3 + val * 0.7;
+    });
+
+    /* --- 11.5 背景绘制 --- */
+    const bgGrad = ctx.createRadialGradient(
+      W / 2, H * 0.6, 0,
+      W / 2, H * 0.6, Math.max(W, H) * 0.8
+    );
+    bgGrad.addColorStop(0, activeColors.bgMid);
+    bgGrad.addColorStop(1, activeColors.bgBase);
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.save();
+    ctx.translate(parX, parY);
+
+    const cTop    = activeColors.top;
+    const cLeft   = activeColors.left;
+    const cRight  = activeColors.right;
+    const cStroke = activeColors.stroke;
+
+    for (let i = 0; i < sortedGrid.length; i++) {
+      const cell = sortedGrid[i];
+
+      const wave = Math.sin(cell.c * 0.3 + time * 1.5) * Math.cos(cell.r * 0.3 + time * 1.2);
+      const audioZ = bassSmooth * tileZ * 1.5 * (0.5 + 0.5 * Math.sin(cell.phase));
+      const targetZ = cell.baseZ + wave * tileZ * 0.2 + audioZ;
+
+      cell.currentZ += (targetZ - cell.currentZ) * 0.1;
+
+      const z = cell.currentZ;
+
+      const p1 = project(cell.c, cell.r, z);
+      const p2 = project(cell.c + 1, cell.r, z);
+      const p3 = project(cell.c + 1, cell.r + 1, z);
+      const p4 = project(cell.c, cell.r + 1, z);
+
+      const b1 = project(cell.c, cell.r, 0);
+      const b2 = project(cell.c + 1, cell.r, 0);
+      const b4 = project(cell.c, cell.r + 1, 0);
+
+      // 左侧面
+      ctx.beginPath();
+      ctx.moveTo(p4.x, p4.y);
+      ctx.lineTo(p1.x, p1.y);
+      ctx.lineTo(b1.x, b1.y);
+      ctx.lineTo(b4.x, b4.y);
+      ctx.closePath();
+      ctx.fillStyle = cLeft;
+      ctx.fill();
+      ctx.strokeStyle = cStroke;
+      ctx.lineWidth = 0.5;
+      ctx.stroke();
+
+      // 右侧面
+      ctx.beginPath();
+      ctx.moveTo(p1.x, p1.y);
+      ctx.lineTo(p2.x, p2.y);
+      ctx.lineTo(b2.x, b2.y);
+      ctx.lineTo(b1.x, b1.y);
+      ctx.closePath();
+      ctx.fillStyle = cRight;
+      ctx.fill();
+      ctx.stroke();
+
+      // 顶面
+      ctx.beginPath();
+      ctx.moveTo(p1.x, p1.y);
+      ctx.lineTo(p2.x, p2.y);
+      ctx.lineTo(p3.x, p3.y);
+      ctx.lineTo(p4.x, p4.y);
+      ctx.closePath();
+      ctx.fillStyle = cTop;
+      ctx.fill();
+      ctx.strokeStyle = cStroke;
+      ctx.stroke();
+
+      if (bassSmooth > 0.05) {
+        ctx.fillStyle = `rgba(255,255,255,${bassSmooth * 0.15})`;
+        ctx.fill();
+      }
+    }
+
+    ctx.restore();
+
+    /* --- 11.6 时钟 UI --- */
+    updateUI();
+
+    requestAnimationFrame(loop);
+  }
+
+  /* ============================================================
+     12. 手动主题切换
+     ============================================================ */
+  function updateToggleLabel(isDark) {
+    const label = isDark ? '切换到浅色主题' : '切换到深色主题';
+    themeToggle.setAttribute('aria-label', label);
+    themeToggle.setAttribute('title', label);
+  }
+
+  function applyTheme(theme, instant) {
+    const isDark = theme === 'dark';
+    document.body.classList.toggle('dark-theme', isDark);
+    document.body.classList.toggle('light-theme', !isDark);
+    setThemeTarget(isDark ? 1 : 0, instant === true);
+    updateToggleLabel(isDark);
+  }
+
+  themeToggle.addEventListener('click', function () {
+    const isDark = document.body.classList.contains('dark-theme');
+    const next = isDark ? 'light' : 'dark';
+    applyTheme(next, false);
+    try { localStorage.setItem('rhine-theme', next); } catch (e) {}
+  });
+
+  (function initTheme() {
+    let initial = 'light';
+    try {
+      const saved = localStorage.getItem('rhine-theme');
+      if (saved === 'dark' || saved === 'light') initial = saved;
+    } catch (e) {}
+    applyTheme(initial, true);
+  })();
+
+  /* ============================================================
+     13. 启动
+     ============================================================ */
+  window.addEventListener('resize', resize);
+  resize();
+  requestAnimationFrame(resize); // 再调一次，确保初次布局后尺寸正确
+  requestAnimationFrame(loop);
+
+})();
+</script>
+</body>
+</html>
